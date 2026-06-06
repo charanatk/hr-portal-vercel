@@ -1,8 +1,3 @@
-export const metadata = {
-  title: "HR Portal",
-  description: "Startup HR Portal",
-};
-
 export default function RootLayout({
   children,
 }: {
