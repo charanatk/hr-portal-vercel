@@ -16,6 +16,8 @@
     "typescript": "^5.4.5"
   },
   "devDependencies": {
+    "@types/node": "^20.17.6",
+    "@types/react": "^18",
     "prisma": "^5.15.0"
   }
 }
