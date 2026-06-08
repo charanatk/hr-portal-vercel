@@ -1,3 +1,5 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
   provider = "prisma-client-js"
@@ -8,10 +10,163 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Employee Model
 model Employee {
-  id        Int      @id @default(autoincrement())
+  id        String     @id @default(cuid())
   name      String
-  email     String   @unique
-  role      String
-  createdAt DateTime @default(now())
+  email     String     @unique
+  position  String
+  department String
+  joinDate  DateTime
+  salary    Float
+  status    String     @default("active") // active, inactive, onLeave
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  // Relations
+  leaves    Leave[]
+  onboarding Onboarding?
+  exitWorkflow ExitWorkflow?
+  salaryRecords SalaryRecord[]
+
+  @@map("employees")
+}
+
+// Leave Model
+model Leave {
+  id        String     @id @default(cuid())
+  employeeId String
+  employee  Employee   @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  
+  leaveType String     // Annual, Sick, Casual, Maternity
+  startDate DateTime
+  endDate   DateTime
+  daysRequested Int
+  reason    String?
+  status    String     @default("pending") // pending, approved, rejected
+  appliedDate DateTime  @default(now())
+  approvedBy String?
+  approvedDate DateTime?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@map("leaves")
+}
+
+// Leave Balance Model
+model LeaveBalance {
+  id        String     @id @default(cuid())
+  employeeId String     @unique
+  
+  annualLeaveTotal Int    @default(15)
+  annualLeaveUsed Int     @default(0)
+  
+  sickLeaveTotal Int     @default(10)
+  sickLeaveUsed Int      @default(0)
+  
+  casualLeaveTotal Int    @default(5)
+  casualLeaveUsed Int     @default(0)
+  
+  maternityLeaveTotal Int  @default(90)
+  maternityLeaveUsed Int   @default(0)
+  
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@map("leave_balances")
+}
+
+// Onboarding Model
+model Onboarding {
+  id        String     @id @default(cuid())
+  employeeId String     @unique
+  employee  Employee   @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  
+  startDate DateTime
+  status    String     @default("not_started") // not_started, in_progress, completed
+  progress  Int        @default(0) // 0-100
+  
+  // Tasks tracking
+  itSetupCompleted Boolean @default(false)
+  hrOrientationCompleted Boolean @default(false)
+  trainingCompleted Boolean @default(false)
+  mentoringCompleted Boolean @default(false)
+  
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@map("onboardings")
+}
+
+// Exit Workflow Model
+model ExitWorkflow {
+  id        String     @id @default(cuid())
+  employeeId String     @unique
+  employee  Employee   @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  
+  exitDate  DateTime
+  reason    String
+  status    String     @default("pending") // pending, in_process, completed
+  stage     Int        @default(1) // 1-4 stages
+  
+  // Exit stages
+  resignationCompleted Boolean @default(false)
+  documentationCompleted Boolean @default(false)
+  finalApprovalCompleted Boolean @default(false)
+  equipmentReturnCompleted Boolean @default(false)
+  
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@map("exit_workflows")
+}
+
+// Salary Record Model
+model SalaryRecord {
+  id        String     @id @default(cuid())
+  employeeId String
+  employee  Employee   @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  
+  amount    Float
+  paymentDate DateTime
+  paymentStatus String @default("pending") // pending, paid, failed
+  month     String     // YYYY-MM format
+  
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@map("salary_records")
+}
+
+// Document Model
+model Document {
+  id        String     @id @default(cuid())
+  title     String
+  fileName  String
+  fileType  String     // PDF, Excel, Word, etc.
+  fileSize  String
+  category  String     // Policies, Financial, Templates, Benefits
+  
+  uploadedBy String
+  uploadedDate DateTime @default(now())
+  downloads Int        @default(0)
+  
+  filePath  String     // Store file path or URL
+  
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@map("documents")
+}
+
+// Activity Log Model
+model ActivityLog {
+  id        String     @id @default(cuid())
+  action    String
+  description String
+  user      String
+  
+  createdAt DateTime   @default(now())
+
+  @@map("activity_logs")
 }
