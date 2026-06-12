@@ -1,3 +1,5 @@
-.env.local
-.env.*.local
-*.pem
+.gitignore
+.env.example
+package.json
+app/*
+api/*
